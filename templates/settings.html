@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2 class="text-center mb-4">Изменить пароль</h2>
+            <form>
+                <div class="form-group">
+                    <label for="oldPassword">Старый пароль</label>
+                    <input type="password" class="form-control" id="oldPassword" placeholder="Введите старый пароль">
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">Новый пароль</label>
+                    <input type="password" class="form-control" id="newPassword" placeholder="Введите новый пароль">
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Подтвердите новый пароль</label>
+                    <input type="password" class="form-control" id="confirmPassword" placeholder="Подтвердите новый пароль">
+                </div>
+                <button type="submit" class="btn btn-primary">Изменить пароль</button>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
