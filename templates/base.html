@@ -7,19 +7,79 @@
     <!-- Bootstrap CSS -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .note-description {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 100%;
+            display: block;
+        }
+        .note-card {
+            cursor: pointer;
+        }
+        .note-card:hover {
+            background-color: #f8f9fa;
+        }
+
+        .edit-icons {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+        .edit-icons i {
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .note-content {
+            position: relative;
+        }
+        .note-title, .note-description {
+            margin: 0;
+        }
+        .note-title {
+            font-weight: bold;
+        }
+<!--        .loader {-->
+<!--            border: 8px solid #f3f3f3;-->
+<!--            border-radius: 50%;-->
+<!--            border-top: 8px solid #3498db;-->
+<!--            width: 60px;-->
+<!--            height: 60px;-->
+<!--            -webkit-animation: spin 2s linear infinite; /* Safari */-->
+<!--            animation: spin 2s linear infinite;-->
+<!--            position: fixed;-->
+<!--            top: 50%;-->
+<!--            left: 50%;-->
+<!--            margin-top: -30px;-->
+<!--            margin-left: -30px;-->
+<!--            z-index: 9999;-->
+<!--        }-->
+
+<!--        /* Safari */-->
+<!--        @-webkit-keyframes spin {-->
+<!--            0% { -webkit-transform: rotate(0deg); }-->
+<!--            100% { -webkit-transform: rotate(360deg); }-->
+<!--        }-->
+
+<!--        @keyframes spin {-->
+<!--            0% { transform: rotate(0deg); }-->
+<!--            100% { transform: rotate(360deg); }-->
+<!--        }-->
+    </style>
 </head>
 <body>
 {% if user.is_authenticated %}
 
     <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="#">Главная</a>
+            <a class="navbar-brand" href="{% url 'index' %}">Главная</a>
             <form class="form-inline my-2 my-lg-0 mx-auto">
                 <input class="form-control mr-sm-2" type="search" placeholder="Поиск" aria-label="Search">
             </form>
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Добавить заметку <i class="bi bi-plus-circle-fill"></i></a>
+                    <a class="nav-link" href="{% url 'note_create' %}">Добавить заметку <i class="bi bi-plus-circle-fill"></i></a>
                 </li>
             </ul>
             <ul class="navbar-nav ml-auto">
@@ -72,5 +132,33 @@
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+        $(document).ready(function() {
+            var originalTitle = "{{ note.title }}";
+            var originalDescription = "{{ note.description }}";
+            var originalDate = "{{ note.notify_at|date:"Y-m-d\TH:i" }}";
+
+            $('#edit-note').on('click', function() {
+                $('#note-display').hide();
+                $('#note-form').show();
+                $('.edit-icons').hide();
+            });
+
+            $('#cancel-edit').on('click', function() {
+                $('#note-display').show();
+                $('#note-form').hide();
+                $('.edit-icons').show();
+                // Восстановление оригинальных значений
+                $('#note-title-input').val(originalTitle);
+                $('#note-description-input').val(originalDescription);
+                $('#note-date-input').val(originalDate);
+            });
+
+            $('#delete-note').on('click', function() {
+                $('#confirm-delete-modal').modal('show');
+            });
+
+        });
+</script>
 </body>
 </html>
