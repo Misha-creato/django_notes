@@ -20,8 +20,14 @@ class CustomUserCreationForm(BaseUserCreationForm):
         )
 
 
-class CustomLoginForm(forms.Form):
+class LoginForm(forms.Form):
     email = forms.EmailField(
         required=True,
     )
     password = forms.PasswordInput()
+
+
+class PasswordResetRequestForm(forms.Form):
+    email = forms.EmailField(
+        required=True,
+    )
