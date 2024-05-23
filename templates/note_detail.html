@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <div class="note-content card">
+        <div class="card-body">
+            <div class="edit-icons">
+                <i class="bi bi-pencil" id="edit-note"></i>
+                <i class="bi bi-trash" id="delete-note"></i>
+            </div>
+            <div id="note-display">
+                    <h5 class="note-title">{{note.title}}</h5>
+                    <p class="note-description">{{note.description}}</p>
+                    <p class="note-date">Дата оповещения:
+                        {% if note.notify_at %}
+                        {{note.notify_at}}
+                        {% else %}
+                        Не установлена
+                        {% endif %}
+                    </p>
+                </div>
+
+                <form id="note-form" style="display: none;" method="POST" action="{% url 'note_edit' note.slug %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="note-title-input" value="{{note.title}}" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <textarea class="form-control" id="note-description-input" rows="3" name="description">{{note.description}}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <input type="datetime-local" class="form-control" id="note-date-input" name="notify_at" value="{{ note.notify_at|date:'Y-m-d\TH:i' }}">
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="save-note">Сохранить</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-edit">Отмена</button>
+                </form>
+
+        </div>
+    </div>
+
+    {% include 'modals/delete_note.html' %}
+
+{% endblock %}
