@@ -50,6 +50,7 @@ DJANGO_APPS = [
 
 PROJECT_APPS = [
     'users',
+    'notes',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS
@@ -163,7 +164,7 @@ EMAIL_HOST = os.environ.get(
     'EMAIL_HOST', 'smtp.gmail.com'
 )
 EMAIL_HOST_USER = os.environ.get(
-    'EMAIL_HOST_USER', 'sanek11konek@gmail.com'
+    'EMAIL_HOST_USER', 'example@gmail.com'
 )
 EMAIL_HOST_PASSWORD = os.environ.get(
     'EMAIL_HOST_PASSWORD', 'gfsarfxycayilaal'
