@@ -40,12 +40,12 @@ class CreateView(LoginRequiredMixin, View):
         )
 
     def post(self, request, *args, **kwargs):
-        status, slug = create_note(
+        status = create_note(
             request=request,
         )
         if status != 200:
             return redirect('note_create')
-        return redirect('note_detail', slug)
+        return redirect('index')
 
 
 class DeleteView(LoginRequiredMixin, View):
