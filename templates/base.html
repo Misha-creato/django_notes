@@ -88,6 +88,8 @@
                         <i class="bi bi-person-fill"></i>
                     </a>
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                        <div class="dropdown-item disabled">{{ user.email }}</div>
+                        <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="{% url 'settings' %}">Настройки</a>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="{% url 'logout' %}">Выход</a>

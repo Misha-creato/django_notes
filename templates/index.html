@@ -7,7 +7,7 @@
             {% for note in notes %}
 
                 <div class="col-md-4 mb-4">
-                    <a class="card note-card text-decoration-none" href="{% url 'note_detail' note.slug %}">
+                    <a class="card note-card text-decoration-none" style="min-height: 100px;" href="{% url 'note_detail' note.slug %}">
                         <div class="card-body">
                             <h5 class="card-title">{{note.title}}</h5>
                             <p class="card-text note-description">{{note.description}}</p>
