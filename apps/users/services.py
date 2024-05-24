@@ -1,5 +1,3 @@
-import json
-import os
 import uuid
 
 from typing import Any
@@ -14,22 +12,16 @@ from django.contrib.auth.forms import (
     PasswordChangeForm,
     SetPasswordForm,
 )
-from django.core.mail import send_mail
 from django.urls import reverse
 
-from config.settings import (
-    SEND_EMAILS,
-    EMAIL_HOST_USER,
-)
+from notifications.services import send_email_by_action
 
 from users.forms import (
     CustomUserCreationForm,
-    LoginForm, PasswordResetRequestForm,
+    LoginForm,
+    PasswordResetRequestForm,
 )
 from users.models import CustomUser
-
-
-CUR_DIR = os.path.dirname(__file__)
 
 
 def register_user(request: Any) -> int:
@@ -47,7 +39,7 @@ def register_user(request: Any) -> int:
     try:
         user = form.save() # commit false
     except Exception as exc:
-        print(f'Произошла ошибка при регистрации пользователя: {exc}')
+        print(f'Произошла ошибка при регистрации пользователя {data}: {exc}')
         messages.error(
             request=request,
             message='Возникла ошибка при создании пользователя',
@@ -56,7 +48,7 @@ def register_user(request: Any) -> int:
 
     messages.success(
         request=request,
-        message='Пользователь успешно создан'
+        message='Пользователь успешно зарегистрирован'
     )
     print(f'Пользователь {user} успешно зарегистрирован')
 
@@ -90,19 +82,19 @@ def login_user(request: Any) -> int:
             request=request,
             message='Неправильные адрес электронной почты или пароль'
         )
-        print('Ошибка аутентификации пользователя')
+        print(f'Ошибка аутентификации пользователя {data}')
         return 401
 
     login(
         request=request,
         user=user,
     )
-    print('Пользователь успешно вошел в систему')
+    print(f'Пользователь {user} успешно вошел в систему')
     return 200
 
 
 def confirm_email(request: Any, url_hash: str) -> int:
-    print('Подтверждение адреса электронной почты')
+    print(f'Подтверждение адреса электронной почты {url_hash}')
     status, user = get_user_by_hash(
         request=request,
         url_hash=url_hash,
@@ -115,7 +107,7 @@ def confirm_email(request: Any, url_hash: str) -> int:
     try:
         user.save()
     except Exception as exc:
-        print(f'Возникла ошибка при сохранении изменений полей email_confirmed, url_hash {exc}')
+        print(f'Возникла ошибка при сохранении изменений полей email_confirmed, url_hash у пользователя {user}: {exc}')
         messages.error(
             request=request,
             message='Возникла ошибка при подтверждении адреса электронной почты',
@@ -126,7 +118,7 @@ def confirm_email(request: Any, url_hash: str) -> int:
         request=request,
         message='Адрес электронной почты успешно подтвержден'
     )
-    print('Адрес электронной почты успешно подтвержден')
+    print(f'Адрес электронной почты пользователя {user} успешно подтвержден')
     return 200
 
 
@@ -143,12 +135,21 @@ def change_password(request: Any) -> int:
         )
         return 400
 
-    form.save()
+    try:
+        form.save()
+    except Exception as exc:
+        print(f'Возникла ошибка при изменении пароля {data} пользователя {user}: {exc}')
+        messages.error(
+            request=request,
+            message='Возникла ошибка при изменении пароля',
+        )
+        return 500
+
+    print(f'Пароль пользователя {user} успешно изменен')
     messages.success(
         request=request,
         message='Пароль успешно изменен',
     )
-    print(f'Пароль успешно изменен')
     update_session_auth_hash(
         request=request,
         user=user,
@@ -172,7 +173,7 @@ def password_reset_request(request: Any) -> int:
     try:
         user = CustomUser.objects.filter(email=email).first()
     except Exception as exc:
-        print(f'Возникла ошибка при попытке найти пользователя {exc}')
+        print(f'Возникла ошибка при попытке найти пользователя {email}: {exc}')
         messages.error(
             request=request,
             message='Возникла ошибка',
@@ -203,6 +204,7 @@ def password_reset(request: Any, url_hash: str) -> int:
         return status
 
     data = request.POST
+    print(f'Сброс пароля для пользователя {user}')
     form = SetPasswordForm(
         data=data,
         user=user,
@@ -219,7 +221,7 @@ def password_reset(request: Any, url_hash: str) -> int:
     try:
         form.save()
     except Exception as exc:
-        print(f'Возникла ошибка при сохранении формы смены пароля {exc}')
+        print(f'Возникла ошибка при сохранении формы смены пароля для пользователя {user}: {exc}')
         messages.error(
             request=request,
             message='Возникла ошибка при восстановлении пароля'
@@ -230,16 +232,16 @@ def password_reset(request: Any, url_hash: str) -> int:
         request=request,
         message='Пароль успешно восстановлен'
     )
-    print('Пароль успешно восстановлен')
+    print(f'Пароль пользователя {user} успешно восстановлен')
     return 200
 
 
 def get_user_by_hash(request: Any, url_hash: str) -> (int, CustomUser | None):
-    print('Получение пользователя по токену')
+    print(f'Получение пользователя по хэшу {url_hash}')
     try:
         user = CustomUser.objects.filter(url_hash=url_hash).first()
     except Exception as exc:
-        print(f'Возникла ошибка при поиске пользователя {exc}')
+        print(f'Возникла ошибка при поиске пользователя по хэшу {url_hash}: {exc}')
         messages.error(
             request=request,
             message='Возникла ошибка'
@@ -247,18 +249,19 @@ def get_user_by_hash(request: Any, url_hash: str) -> (int, CustomUser | None):
         return 500, None
 
     if user is None:
-        print(f'Неверный токен {url_hash}')
+        print(f'Пользователь с хэшем {url_hash} не найден')
         messages.error(
             request=request,
             message='Неверный токен'
         )
         return 404, None
 
+    print(f'Пользователь {user} с хэшем {url_hash} найден')
     return 200, user
 
 
 def send_confirmation_email(request: Any, user: CustomUser) -> int:
-    status = send_email_by_action(
+    status = get_mail_response_status(
         request=request,
         user=user,
         action='confirm_email',
@@ -274,7 +277,7 @@ def send_confirmation_email(request: Any, user: CustomUser) -> int:
     try:
         user.save()
     except Exception as exc:
-        print(f'Возникла ошибка при сохранении изменений поля mail_sent {exc}')
+        print(f'Возникла ошибка при сохранении изменений поля mail_sent для пользователя {user}: {exc}')
         return 500
 
     messages.success(
@@ -285,7 +288,7 @@ def send_confirmation_email(request: Any, user: CustomUser) -> int:
 
 
 def send_password_reset_email(request: Any, user: CustomUser) -> int:
-    status = send_email_by_action(
+    status = get_mail_response_status(
         request=request,
         user=user,
         action='password_reset',
@@ -296,6 +299,7 @@ def send_password_reset_email(request: Any, user: CustomUser) -> int:
             message='Письмо для восстановления пароля не было отправлено',
         )
         return status
+
     messages.success(
         request=request,
         message='Письмо для восстановления пароля отправлено',
@@ -303,72 +307,52 @@ def send_password_reset_email(request: Any, user: CustomUser) -> int:
     return 200
 
 
-def send_email_by_action(request: Any, user: CustomUser, action: str) -> int:
+def get_mail_response_status(request: Any, user: CustomUser, action: str) -> int:
+    status, mail_data = get_mail_data(
+        request=request,
+        user=user,
+        action=action,
+    )
+    if status == 200:
+        status = send_email_by_action(
+            user=user,
+            mail_data=mail_data,
+            action=action,
+        )
+        if status == 403:
+            messages.warning(
+                request=request,
+                message='Функция отправки писем отключена',
+            )
+    return status
+
+
+def get_mail_data(request: Any, user: CustomUser, action: str) -> (int, dict | None):
+    print(f'Получение данных для формирования текста письма {action} пользователю {user}')
     status, url_hash = set_url_hash(
         user=user,
     )
     if status != 200:
-        return status
+        return status, None
 
-    email_text = prepare_email_text(
-        request=request,
-        url_hash=url_hash,
-        action=action,
-    )
-    status = send_email_to_user(
-        request=request,
-        user=user,
-        email_text=email_text,
-    )
-    return status
-
-
-def prepare_email_text(request: Any, url_hash: str, action: str) -> dict | None:
-    with open(f'{CUR_DIR}/mail_messages/{action}.json') as file:
-        data = json.load(file)
-
-    url = request.build_absolute_uri(reverse(action, args=(url_hash, )))
-
-    subject = data['subject']
-    message = data['message'].format(url=url)
-
-    return {
-        'subject': subject,
-        'message': message,
+    url = request.build_absolute_uri(reverse(action, args=(url_hash,)))
+    mail_data = {
+        'url': url,
     }
 
-
-def send_email_to_user(request: Any, user: CustomUser, email_text: dict) -> int:
-    if not SEND_EMAILS:
-        print('Отправка писем отключена')
-        messages.warning(
-            request=request,
-            message='Функция отправки писем отключена',
-        )
-        return 403
-
-    try:
-        send_mail(
-            subject=email_text['subject'],
-            message=email_text['message'],
-            from_email=EMAIL_HOST_USER,
-            recipient_list=[user.email]
-        )
-    except Exception as exc:
-        print(f'Произошла ошибка при отправке письма пользователю {exc}')
-        return 500
-
-    return 200
+    return 200, mail_data
 
 
 def set_url_hash(user: CustomUser) -> (int, str):
+    print(f'Получение хэша для пользователя {user}')
     url_hash = str(uuid.uuid4())
     user.url_hash = url_hash
     try:
         user.save()
     except Exception as exc:
-        print(f'Не удалось установить хэш для пользователя {user} {exc}')
+        print(f'Не удалось установить хэш для пользователя {user}: {exc}')
         return 500, None
+    print(f'Хэш для пользователя {user} установлен')
     return 200, url_hash
 
 
