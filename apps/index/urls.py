@@ -8,5 +8,5 @@ urlpatterns = [
         '',
         IndexView.as_view(),
         name='index',
-    )
+    ),
 ]
