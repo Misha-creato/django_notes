@@ -2,7 +2,6 @@ from django.shortcuts import render
 from django.views import View
 
 from index.services import get_notes
-from notes.models import Note
 
 
 class IndexView(View):
