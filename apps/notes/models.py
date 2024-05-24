@@ -32,8 +32,9 @@ class Note(models.Model):
         verbose_name='Оповещение отправлено',
         default=False,
     )
-    slug = models.SlugField(
+    slug = models.CharField(
         verbose_name='Слаг',
+        max_length=256,
         unique=True,
         blank=True,
     )
@@ -43,12 +44,11 @@ class Note(models.Model):
     )
 
     def __make_slug(self):
-        slug_title = slugify(self.title)
-        slug_id = str(uuid.uuid4())[:8]
-        self.slug = f'{slug_title}-{slug_id}'
+        self.slug = str(uuid.uuid4())
 
     def save(self, *args, **kwargs):
-        self.__make_slug()
+        if self.pk is None:
+            self.__make_slug()
 
         super().save(*args, **kwargs)
 
