@@ -52,6 +52,7 @@ PROJECT_APPS = [
     'users',
     'notes',
     'index',
+    'notifications',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS
