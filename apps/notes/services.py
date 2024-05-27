@@ -1,9 +1,13 @@
 from typing import Any
 
 from django.contrib import messages
+from django.core.paginator import Paginator
+from django.http import JsonResponse
+from django.urls import reverse
 
 from notes.forms import NoteForm
 from notes.models import Note
+from notifications.services import send_email_by_type
 
 from users.services import set_form_messages
 
@@ -37,6 +41,8 @@ def get_note(request: Any, slug: str) -> (int, Note | None):
 
 
 def edit_note(request: Any, slug: str) -> (int, str):
+    author = request.user
+    print(f'Редактирование заметки {slug} пользователя {author} с данными {request.POST}')
     status, note = get_note(
         request=request,
         slug=slug,
@@ -44,14 +50,13 @@ def edit_note(request: Any, slug: str) -> (int, str):
     if status != 200:
         return status, None
 
-    print(f'Редактирование заметки {slug} с данными {request.POST}')
     status, note = edit_or_create_note(
         request=request,
         note=note,
     )
 
     if status == 200:
-        print(f'Заметка {note} пользователя {request.user} изменена')
+        print(f'Заметка {note} пользователя {author} изменена')
         messages.success(
             request=request,
             message='Заметка успешно изменена',
@@ -60,7 +65,8 @@ def edit_note(request: Any, slug: str) -> (int, str):
 
 
 def create_note(request: Any) -> int:
-    print(f'Cоздание заметки {request.POST} пользователем {request.user}')
+    author = request.user
+    print(f'Cоздание заметки {request.POST} пользователем {author}')
     status, note = edit_or_create_note(
         request=request,
     )
@@ -70,26 +76,29 @@ def create_note(request: Any) -> int:
             message='Заметка успешно создана',
         )
 
-    print(f'Заметка {note} пользователя {request.user} успешно создана')
+    print(f'Заметка {note} пользователя {author} успешно создана')
     return status
 
 
 def edit_or_create_note(request: Any, note: Note = None) -> (int, Note):
     data = request.POST
-    form = NoteForm(data, note)
+    form = NoteForm(data, instance=note)
+    author = request.user
     if not form.is_valid():
-        print(f'Невалидные данные {form.errors}')
+        print(f'Невалидные данные при изменении '
+              f'или создании заметки пользователя {author}: {form.errors}')
         set_form_messages(
             request=request,
             form=form,
         )
         return 400, None
 
-    form.instance.author = request.user
+    form.instance.author = author
+    form.instance.notification_sent = False
     try:
         form.save()
     except Exception as exc:
-        print(f'Возникла ошибка при сохранении изменений заметки {form.instance} пользователя {request.user}: {exc}')
+        print(f'Возникла ошибка при сохранении изменений заметки {form.instance} пользователя {author}: {exc}')
         messages.error(
             request=request,
             message='Возникла ошибка',
@@ -100,6 +109,8 @@ def edit_or_create_note(request: Any, note: Note = None) -> (int, Note):
 
 
 def delete_note(request: Any, slug: str) -> int:
+    author = request.user
+    print(f'Удаление заметки {slug} пользователя {author}')
     status, note = get_note(
         request=request,
         slug=slug,
@@ -107,11 +118,10 @@ def delete_note(request: Any, slug: str) -> int:
     if status != 200:
         return status
 
-    print(f'Удаление заметки {note} пользователя {request.user}')
     try:
         note.delete()
     except Exception as exc:
-        print(f'Возникла ошибка при удалении заметки {note} пользователя {request.user}: {exc}')
+        print(f'Возникла ошибка при удалении заметки {note} пользователя {author}: {exc}')
         messages.error(
             request=request,
             message='Не удалось удалить заметку',
@@ -124,3 +134,89 @@ def delete_note(request: Any, slug: str) -> int:
         message='Заметка успешно удалена',
     )
     return 200
+
+
+def send_notification_email(note: Note):
+    user = note.author
+    print(f'Подготовка отправки письма-оповещения по заметке пользователю {user}')
+    mail_data = get_note_mail_data(
+        note=note,
+        email_type='note_notification',
+    )
+    status = send_email_by_type(
+        user=user,
+        mail_data=mail_data,
+        email_type='note_notification',
+    )
+    if status == 200:
+        note.notification_sent = True
+        try:
+            note.save()
+        except Exception as exc:
+            print(f'Не удалось сохранить поле notification_sent заметки {note}: {exc}')
+    return status
+
+
+def get_note_mail_data(note: Note, email_type: str) -> dict:
+    user = note.author
+    print(f'Получение данных для формирования текста '
+          f'письма {email_type} пользователю {user}')
+
+    path = reverse('note_detail', args=(note.slug,))
+    url = f'http://127.0.0.1:8000{path}'
+
+    mail_data = {
+        'note_title': note.title,
+        'url': url,
+    }
+
+    print(f'Данные для формирования текста письма {email_type} '
+          f'пользователю {user} получены: {mail_data}'
+          )
+    return mail_data
+
+
+def search_note(request: Any) -> [Note]:
+    query = request.GET.get('notes_query')
+    print(f'Поиск по заголовку заметки {query}')
+    try:
+        notes = Note.objects.filter(
+            author=request.user,
+            title__icontains=query,
+        )
+    except Exception as exc:
+        print(f'Произошла ошибка при поиске заметки {query}: {exc}')
+        return []
+    print(f'Результат поиска по заголовку заметки {query}: {notes}')
+    return notes
+
+
+def load_notes(request):
+    page_number = request.GET.get('page')
+    paginator = Paginator(Note.objects.all(), 10)  # 10 объектов на страницу
+    page_obj = paginator.get_page(page_number)
+
+    note_data = [{
+        'title': note.title,
+        'description': note.description,
+        'slug': note.slug
+    } for note in page_obj]
+
+    return JsonResponse({'notes': note_data, 'has_next': page_obj.has_next()})
+
+
+def get_notes(request: Any) -> [Note]: # TODO
+    print(f'Получение списка заметок пользователя {request.user}')
+    try:
+        notes = Paginator(Note.objects.filter(
+            author=request.user,
+        ), 30)
+    except Exception as exc:
+        print(f'Возникла ошибка при получении списка заметок пользователя {request.user}: {exc}')
+        messages.error(
+            request=request,
+            message='Возникла ошибка',
+        )
+        return []
+    print(f'Список заметок пользователя {request.user} получен')
+    return notes
