@@ -31,7 +31,7 @@ class LoginView(View):
         )
         if status != 200:
             return redirect('login')
-        return redirect('login') #index
+        return redirect('index')
 
 
 class RegisterView(View):
@@ -56,7 +56,7 @@ class ConfirmEmailView(View):
             request=request,
             url_hash=url_hash,
         )
-        return redirect('login')# index
+        return redirect('index')
 
 
 class SendConfirmEmailView(LoginRequiredMixin, View):
@@ -65,7 +65,7 @@ class SendConfirmEmailView(LoginRequiredMixin, View):
             request=request,
             user=request.user,
         )
-        return redirect('login')# index
+        return redirect('index')
 
 
 class SettingsView(LoginRequiredMixin, View):
@@ -105,7 +105,7 @@ class PasswordResetView(View):
             url_hash=url_hash,
         )
         if status != 200:
-            return redirect('login') #index
+            return redirect('index')
         return render(
             request=request,
             template_name='password_reset.html',
