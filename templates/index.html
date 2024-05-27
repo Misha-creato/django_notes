@@ -2,45 +2,7 @@
 
 {% block content %}
 
-    <div class="row">
-        {% if notes %}
-            {% for note in notes %}
+{% include 'partials/notes.html' with notes=notes text='Здесь будут ваши заметки' %}
 
-                <div class="col-md-4 mb-4">
-                    <a class="card note-card text-decoration-none" style="min-height: 100px;" href="{% url 'note_detail' note.slug %}">
-                        <div class="card-body">
-                            <h5 class="card-title">{{note.title}}</h5>
-                            <p class="card-text note-description">{{note.description}}</p>
-                        </div>
-                    </a>
-                </div>
 
-            {% endfor %}
-
-        {% else %}
-        <p>Здесь будут ваши заметки</p>
-        {% endif %}
-
-    </div>
-
-<!--    <div id="notes-container">-->
-<!--        <div class="row">-->
-<!--        {% for note in notes %}-->
-
-<!--            <div class="col-md-4 mb-4">-->
-<!--                <a class="card note-card text-decoration-none" href="{% url 'note_detail' note.slug %}">-->
-<!--                    <div class="card-body">-->
-<!--                        <h5 class="card-title">{{note.title}}</h5>-->
-<!--                        <p class="card-text note-description">{{note.description}}</p>-->
-<!--                    </div>-->
-<!--                </a>-->
-<!--            </div>-->
-
-<!--        {% endfor %}-->
-
-<!--        </div>-->
-
-<!--    </div>-->
-
-<!--    <div class="loader" id="loader" style="display: none;"></div>-->
 {% endblock %}

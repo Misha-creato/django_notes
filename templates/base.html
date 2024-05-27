@@ -1,3 +1,5 @@
+<!--{% load static %}-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -40,32 +42,33 @@
         .note-title {
             font-weight: bold;
         }
-<!--        .loader {-->
-<!--            border: 8px solid #f3f3f3;-->
-<!--            border-radius: 50%;-->
-<!--            border-top: 8px solid #3498db;-->
-<!--            width: 60px;-->
-<!--            height: 60px;-->
-<!--            -webkit-animation: spin 2s linear infinite; /* Safari */-->
-<!--            animation: spin 2s linear infinite;-->
-<!--            position: fixed;-->
-<!--            top: 50%;-->
-<!--            left: 50%;-->
-<!--            margin-top: -30px;-->
-<!--            margin-left: -30px;-->
-<!--            z-index: 9999;-->
-<!--        }-->
 
-<!--        /* Safari */-->
-<!--        @-webkit-keyframes spin {-->
-<!--            0% { -webkit-transform: rotate(0deg); }-->
-<!--            100% { -webkit-transform: rotate(360deg); }-->
-<!--        }-->
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 8px solid #3498db;
+            width: 60px;
+            height: 60px;
+            -webkit-animation: spin 2s linear infinite; /* Safari */
+            animation: spin 2s linear infinite;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            margin-top: -30px;
+            margin-left: -30px;
+            z-index: 9999;
+        }
 
-<!--        @keyframes spin {-->
-<!--            0% { transform: rotate(0deg); }-->
-<!--            100% { transform: rotate(360deg); }-->
-<!--        }-->
+        /* Safari */
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -74,8 +77,8 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
         <div class="container">
             <a class="navbar-brand" href="{% url 'index' %}">Главная</a>
-            <form class="form-inline my-2 my-lg-0 mx-auto">
-                <input class="form-control mr-sm-2" type="search" placeholder="Поиск" aria-label="Search">
+            <form class="form-inline my-2 my-lg-0 mx-auto" method="GET" action="{% url 'note_search' %}">
+                <input class="form-control mr-sm-2" type="search" placeholder="Поиск" aria-label="Search" name="notes_query" required>
             </form>
             <ul class="navbar-nav">
                 <li class="nav-item">
@@ -132,6 +135,7 @@
 </div>
 <!-- Bootstrap JS and dependencies -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
@@ -162,5 +166,57 @@
 
         });
 </script>
+<script>
+        $(document).ready(function () {
+
+        let page = 2;
+        let isLoading = false;
+        let hasNext = true;
+
+        function loadNotes() {
+            if (isLoading || !hasNext) return;
+            isLoading = true;
+            $('#loading').show();
+
+            $.ajax({
+                url: window.location.href,
+                data: {
+                    'page': page,
+                },
+                dataType: 'json',
+                success: function (data) {
+                    data.notes.forEach(note => {
+                        $('#note-container').append(`
+                            <div class="col-md-4 mb-4">
+                                <a class="card note-card text-decoration-none" style="min-height: 100px;" href="/notes/${note.slug}/">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${note.title}</h5>
+                                        <p class="card-text note-description">${note.description}</p>
+                                    </div>
+                                </a>
+                            </div>
+                        `);
+                    });
+                    page += 1;
+                    hasNext = data.has_next;
+                    isLoading = false;
+                    $('#loading').hide();
+                },
+                error: function () {
+                    isLoading = false;
+                    $('#loading').hide();
+                }
+            });
+        }
+
+        $(window).scroll(function () {
+            if ($(window).scrollTop() + $(window).height() >= $(document).height() - 100) {
+                loadNotes();
+            }
+        });
+
+        });
+    </script>
+
 </body>
 </html>
