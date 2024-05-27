@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from notes.services import get_note, edit_note, delete_note, create_note
+from notes.services import get_note, edit_note, delete_note, create_note, search_note
 
 
 class DetailView(LoginRequiredMixin, View):
@@ -57,3 +57,18 @@ class DeleteView(LoginRequiredMixin, View):
         if status != 200:
             return redirect('detail', slug)
         return redirect('index')
+
+
+class SearchView(View):
+    def get(self, request, *args, **kwargs):
+        notes = search_note(
+            request=request,
+        )
+        context = {
+            'notes': notes,
+        }
+        return render(
+            request=request,
+            template_name='notes_search_results.html',
+            context=context,
+        )
