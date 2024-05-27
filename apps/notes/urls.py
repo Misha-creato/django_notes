@@ -5,6 +5,7 @@ from notes.views import (
     EditView,
     DeleteView,
     CreateView,
+    SearchView,
 )
 
 
@@ -23,6 +24,11 @@ urlpatterns = [
         'delete/<str:slug>/',
         DeleteView.as_view(),
         name='note_delete',
+    ),
+    path(
+        'search/',
+        SearchView.as_view(),
+        name='note_search',
     ),
     path(
         '<str:slug>/',
