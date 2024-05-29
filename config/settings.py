@@ -48,6 +48,7 @@ DJANGO_APPS = [
     'django.contrib.staticfiles',
 
     'workers',
+    'solo',
 ]
 
 PROJECT_APPS = [
@@ -55,6 +56,7 @@ PROJECT_APPS = [
     'notes',
     'index',
     'notifications',
+    'configurations',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS
@@ -166,13 +168,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Email settings
 
-SEND_EMAILS = False
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get(
     'EMAIL_HOST', 'smtp.gmail.com'
 )
 EMAIL_HOST_USER = os.environ.get(
-    'EMAIL_HOST_USER', 'example@gmail.com'
+    'EMAIL_HOST_USER', 'sanek11konek@gmail.com'
 )
 EMAIL_HOST_PASSWORD = os.environ.get(
     'EMAIL_HOST_PASSWORD', 'gfsarfxycayilaal'
@@ -199,3 +200,16 @@ LOGIN_URL = 'login'
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_TIMEZONE = 'UTC'
+
+# workers
+
+WORKERS_PURGE = 1
+
+# site
+
+SITE_DOMAIN = os.environ.get(
+    'SITE_DOMAIN', '127.0.0.1:8000'
+)
+SITE_PROTOCOL = os.environ.get(
+    'SITE_PROTOCOL', 'http'
+)
