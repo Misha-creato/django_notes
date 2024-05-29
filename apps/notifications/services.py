@@ -1,11 +1,20 @@
 from django.core.mail import send_mail
 
 from config.settings import (
-    SEND_EMAILS,
     EMAIL_HOST_USER,
 )
+from configurations.models import Configuration
 from notifications.models import EmailTemplate
 from users.models import CustomUser
+
+
+def get_send_email_status():
+    try:
+        configs = Configuration.get_solo()
+    except Exception as exc:
+        print(f'Ошибка при получении настроек {exc}')
+        return False
+    return configs.send_emails
 
 
 def send_email_by_type(user: CustomUser, mail_data: dict, email_type: str) -> int:
@@ -50,7 +59,7 @@ def formate_email_text(mail_data: dict, email_type: str) -> dict:
 
 
 def send_email_to_user(user: CustomUser, email_text: dict) -> int:
-    if not SEND_EMAILS:
+    if not get_send_email_status():
         print('Отправка писем отключена')
         return 403
 
