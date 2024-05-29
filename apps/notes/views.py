@@ -1,8 +1,16 @@
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from notes.services import get_note, edit_note, delete_note, create_note, search_note
+from notes.services import (
+    get_note,
+    edit_note,
+    delete_note,
+    create_note,
+    search_notes,
+    load_notes,
+)
 
 
 class DetailView(LoginRequiredMixin, View):
@@ -61,7 +69,14 @@ class DeleteView(LoginRequiredMixin, View):
 
 class SearchView(View):
     def get(self, request, *args, **kwargs):
-        notes = search_note(
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            data = load_notes(
+                request=request,
+            )
+            return JsonResponse(data)
+
+        notes = search_notes(
             request=request,
         )
         context = {
