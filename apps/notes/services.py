@@ -1,10 +1,10 @@
 from typing import Any
 
 from django.contrib import messages
-from django.core.paginator import Paginator
-from django.http import JsonResponse
+
 from django.urls import reverse
 
+from config.settings import SITE_PROTOCOL, SITE_DOMAIN
 from notes.forms import NoteForm
 from notes.models import Note
 from notifications.services import send_email_by_type
@@ -163,7 +163,7 @@ def get_note_mail_data(note: Note, email_type: str) -> dict:
           f'письма {email_type} пользователю {user}')
 
     path = reverse('note_detail', args=(note.slug,))
-    url = f'http://127.0.0.1:8000{path}'
+    url = f'{SITE_PROTOCOL}://{SITE_DOMAIN}{path}'
 
     mail_data = {
         'note_title': note.title,
@@ -176,7 +176,7 @@ def get_note_mail_data(note: Note, email_type: str) -> dict:
     return mail_data
 
 
-def search_note(request: Any) -> [Note]:
+def search_notes(request: Any) -> [Note]:
     query = request.GET.get('notes_query')
     print(f'Поиск по заголовку заметки {query}')
     try:
@@ -191,26 +191,32 @@ def search_note(request: Any) -> [Note]:
     return notes
 
 
-def load_notes(request):
-    page_number = request.GET.get('page')
-    paginator = Paginator(Note.objects.all(), 10)  # 10 объектов на страницу
-    page_obj = paginator.get_page(page_number)
+def load_notes(request) -> dict:
+    counter = int(request.GET.get('counter'))
+
+    notes = get_notes(
+        request=request,
+        counter=counter,
+    )
 
     note_data = [{
         'title': note.title,
         'description': note.description,
-        'slug': note.slug
-    } for note in page_obj]
+        'slug': note.slug,
+    } for note in notes]
 
-    return JsonResponse({'notes': note_data, 'has_next': page_obj.has_next()})
+    return {
+        'notes': note_data,
+    }
 
 
-def get_notes(request: Any) -> [Note]: # TODO
+def get_notes(request: Any, counter: int = 0) -> [Note]:
+    limit = 30
     print(f'Получение списка заметок пользователя {request.user}')
     try:
-        notes = Paginator(Note.objects.filter(
+        notes = Note.objects.filter(
             author=request.user,
-        ), 30)
+        )[counter:][:limit]
     except Exception as exc:
         print(f'Возникла ошибка при получении списка заметок пользователя {request.user}: {exc}')
         messages.error(
