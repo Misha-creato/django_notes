@@ -23,8 +23,10 @@ def time_to_send_notification(self, note_id: int):
 
 @task(schedule=60)
 def check_notification_date():
-    notes = Note.objects.filter(notify_at__date=timezone.now().date(), notification_sent=False)
+    notes = Note.objects.filter(
+        notify_at=timezone.now().replace(second=0, microsecond=0),
+        notification_sent=False
+    )
     for note in notes:
-        if note.notify_at == timezone.now().replace(second=0, microsecond=0):
-            print("Воркер нашел совпадение")
-            time_to_send_notification.delay(note_id=note.id)
+        print("Воркер нашел заметку")
+        time_to_send_notification.delay(note_id=note.id)
