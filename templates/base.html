@@ -169,19 +169,19 @@
 <script>
         $(document).ready(function () {
 
-        let page = 2;
         let isLoading = false;
-        let hasNext = true;
+        let counter = 30;
+        let limit = 30;
 
         function loadNotes() {
-            if (isLoading || !hasNext) return;
+            if (isLoading) return;
             isLoading = true;
             $('#loading').show();
 
             $.ajax({
                 url: window.location.href,
                 data: {
-                    'page': page,
+                    'counter': counter
                 },
                 dataType: 'json',
                 success: function (data) {
@@ -197,8 +197,7 @@
                             </div>
                         `);
                     });
-                    page += 1;
-                    hasNext = data.has_next;
+                    counter = counter + limit
                     isLoading = false;
                     $('#loading').hide();
                 },
