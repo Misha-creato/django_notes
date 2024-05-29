@@ -17,6 +17,6 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
 
 
-@app.task(bind=True, ignore_result=True)
-def debug_task():
-    print(f'Request: ')
+# @app.task(bind=True, ignore_result=True)
+# def debug_task():
+#     print(f'Request: ')
