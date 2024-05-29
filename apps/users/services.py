@@ -26,11 +26,14 @@ from users.models import CustomUser
 
 def register_user(request: Any) -> int:
     data = request.POST
-    email = data.get('email')
-    print(f'Регистрация пользователя {email}')
+    user_data = data.dict()
+    user_data.pop('password1')
+    user_data.pop('password2')
+
+    print(f'Регистрация пользователя {user_data}')
     form = CustomUserCreationForm(data)
     if not form.is_valid():
-        print(f'Невалидные данные для регистрации пользователя {email}: {form.errors}')
+        print(f'Невалидные данные для регистрации пользователя {user_data}: {form.errors}')
         set_form_messages(
             request=request,
             form=form,
@@ -63,11 +66,13 @@ def register_user(request: Any) -> int:
 
 def login_user(request: Any) -> int:
     data = request.POST
-    email = data.get('email')
-    print(f'Вход пользователя {email}')
+    user_data = data.dict()
+    user_data.pop('password')
+
+    print(f'Вход пользователя {user_data}')
     form = LoginForm(data)
     if not form.is_valid():
-        print(f'Невалидные данные для входа пользователя {email}: {form.errors}')
+        print(f'Невалидные данные для входа пользователя {user_data}: {form.errors}')
         set_form_messages(
             request=request,
             form=form,
@@ -84,7 +89,7 @@ def login_user(request: Any) -> int:
             request=request,
             message='Неправильные адрес электронной почты или пароль'
         )
-        print(f'Ошибка аутентификации пользователя {email}')
+        print(f'Ошибка аутентификации пользователя {user_data}')
         return 401
 
     login(
