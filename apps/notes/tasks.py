@@ -15,10 +15,10 @@ def time_to_send_notification(self, note_id: int):
     status = send_notification_email(note)
     if status != 200:
         try:
-            print(f"Попытка отправить письмо еще раз")
+            print("Попытка отправить письмо еще раз")
             self.retry()
         except MaxRetriesExceededError:
-            print(f"Попытки закончились. Письмо не удалось отправить")
+            print("Попытки закончились. Письмо не удалось отправить")
 
 
 @task(schedule=60)
