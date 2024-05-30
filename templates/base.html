@@ -170,7 +170,7 @@
         $(document).ready(function () {
 
         let isLoading = false;
-        let counter = 30;
+        let page = 2;
         let limit = 30;
 
         function loadNotes() {
@@ -181,7 +181,7 @@
             $.ajax({
                 url: window.location.href,
                 data: {
-                    'counter': counter
+                    'page': page
                 },
                 dataType: 'json',
                 success: function (data) {
@@ -197,7 +197,7 @@
                             </div>
                         `);
                     });
-                    counter = counter + limit
+                    page = page + 1
                     isLoading = false;
                     $('#loading').hide();
                 },
