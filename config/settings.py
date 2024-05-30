@@ -56,7 +56,6 @@ PROJECT_APPS = [
     'notes',
     'index',
     'notifications',
-    'configurations',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS
@@ -212,4 +211,11 @@ SITE_DOMAIN = os.environ.get(
 )
 SITE_PROTOCOL = os.environ.get(
     'SITE_PROTOCOL', 'http'
+)
+
+
+# fixtures
+
+FIXTURE_DIRS = (
+    os.path.join(BASE_DIR, 'apps', 'notes', 'tests', 'fixtures'),
 )
