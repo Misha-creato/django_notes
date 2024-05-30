@@ -15,7 +15,8 @@ def validate_notify_date(value):
 
 class NoteForm(forms.ModelForm):
     notify_at = forms.DateTimeField(
-        validators=[validate_notify_date]
+        validators=[validate_notify_date],
+        required=False,
     )
 
     class Meta:
