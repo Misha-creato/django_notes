@@ -29,7 +29,9 @@
                         <textarea class="form-control" id="note-description-input" rows="3" name="description">{{note.description}}</textarea>
                     </div>
                     <div class="form-group">
-                        <input type="datetime-local" class="form-control" id="note-date-input" name="notify_at" value="{{ note.notify_at|date:'Y-m-d\TH:i' }}">
+                        <input type="datetime-local" class="form-control" id="note-date-input" name="notify_at"
+                               min="{{ min_date }}"
+                               value="{{ note.notify_at|date:'Y-m-d\TH:i' }}">
                     </div>
                     <button type="submit" class="btn btn-primary" id="save-note">Сохранить</button>
                     <button type="button" class="btn btn-secondary" id="cancel-edit">Отмена</button>
