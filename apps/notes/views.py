@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
+from django.utils import timezone
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 
@@ -23,6 +24,7 @@ class DetailView(LoginRequiredMixin, View):
             return redirect('index')
         context = {
             'note': note,
+            'min_date': timezone.now().strftime('%Y-%m-%dT%H:%M'),
         }
         return render(
             request=request,
@@ -42,9 +44,13 @@ class EditView(LoginRequiredMixin, View):
 
 class CreateView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
+        context = {
+            'min_date': timezone.now().strftime('%Y-%m-%dT%H:%M')
+        }
         return render(
             request=request,
             template_name='note_create.html',
+            context=context,
         )
 
     def post(self, request, *args, **kwargs):
@@ -73,6 +79,7 @@ class SearchView(View):
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             data = load_notes(
                 request=request,
+                search=True,
             )
             return JsonResponse(data)
 
