@@ -26,9 +26,9 @@ from users.models import CustomUser
 
 def register_user(request: Any) -> int:
     data = request.POST
-    user_data = data.dict()
-    user_data.pop('password1')
-    user_data.pop('password2')
+    user_data = get_log_user_data(
+        user_data=data.dict(),
+    )
 
     print(f'Регистрация пользователя {user_data}')
     form = CustomUserCreationForm(data)
@@ -66,8 +66,9 @@ def register_user(request: Any) -> int:
 
 def login_user(request: Any) -> int:
     data = request.POST
-    user_data = data.dict()
-    user_data.pop('password')
+    user_data = get_log_user_data(
+        user_data=data.dict(),
+    )
 
     print(f'Вход пользователя {user_data}')
     form = LoginForm(data)
@@ -241,6 +242,17 @@ def password_reset(request: Any, url_hash: str) -> int:
     )
     print(f'Пароль пользователя {user} успешно восстановлен')
     return 200
+
+
+def get_log_user_data(user_data: dict) -> dict:
+    keys = [
+        'password',
+        'password1',
+        'password2',
+    ]
+    for key in keys:
+        user_data.pop(key, None)
+    return user_data
 
 
 def get_user_by_hash(request: Any, url_hash: str) -> (int, CustomUser | None):
