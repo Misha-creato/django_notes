@@ -1,12 +1,15 @@
 from typing import Any
 
 from django.contrib import messages
-
 from django.urls import reverse
 
-from config.settings import SITE_PROTOCOL, SITE_DOMAIN
+from config.settings import (
+    SITE_PROTOCOL,
+    SITE_DOMAIN,
+)
 from notes.forms import NoteForm
 from notes.models import Note
+
 from notifications.services import send_email_by_type
 
 from users.services import set_form_messages
@@ -176,14 +179,16 @@ def get_note_mail_data(note: Note, email_type: str) -> dict:
     return mail_data
 
 
-def search_notes(request: Any) -> [Note]:
+def search_notes(request: Any, page: int = 1) -> [Note]:
+    page -= 1
+    limit = 30
     query = request.GET.get('notes_query')
     print(f'Поиск по заголовку заметки {query}')
     try:
         notes = Note.objects.filter(
             author=request.user,
             title__icontains=query,
-        )
+        )[page*limit:][:limit]
     except Exception as exc:
         print(f'Произошла ошибка при поиске заметки {query}: {exc}')
         return []
@@ -191,13 +196,19 @@ def search_notes(request: Any) -> [Note]:
     return notes
 
 
-def load_notes(request) -> dict:
-    counter = int(request.GET.get('counter'))
+def load_notes(request: Any, search: bool = False) -> dict:
+    page = int(request.GET.get('page'))
 
-    notes = get_notes(
-        request=request,
-        counter=counter,
-    )
+    if search:
+        notes = search_notes(
+            request=request,
+            page=page,
+        )
+    else:
+        notes = get_notes(
+            request=request,
+            page=page,
+        )
 
     note_data = [{
         'title': note.title,
@@ -210,13 +221,14 @@ def load_notes(request) -> dict:
     }
 
 
-def get_notes(request: Any, counter: int = 0) -> [Note]:
+def get_notes(request: Any, page: int = 1) -> [Note]:
+    page -= 1
     limit = 30
     print(f'Получение списка заметок пользователя {request.user}')
     try:
         notes = Note.objects.filter(
             author=request.user,
-        )[counter:][:limit]
+        )[page*limit:][:limit]
     except Exception as exc:
         print(f'Возникла ошибка при получении списка заметок пользователя {request.user}: {exc}')
         messages.error(
