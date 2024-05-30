@@ -3,14 +3,16 @@ from django.core.mail import send_mail
 from config.settings import (
     EMAIL_HOST_USER,
 )
-from configurations.models import Configuration
-from notifications.models import EmailTemplate
+from notifications.models import (
+    EmailTemplate,
+    EmailConfiguration,
+)
 from users.models import CustomUser
 
 
 def get_send_email_status():
     try:
-        configs = Configuration.get_solo()
+        configs = EmailConfiguration.get_solo()
     except Exception as exc:
         print(f'Ошибка при получении настроек {exc}')
         return False
